@@ -1,40 +1,55 @@
-/* 
-When the user enters in text into the text area and then clicks the create button, use a factory function that creates a new DOM component that has a border, and includes it's own delete button.
-
-Insert that new component into the DOM.
-
-When the user clicks the Delete button, the containing card, and no other cards, should then be removed from the DOM. Not just made invisible, actually removed from the DOM.
-
-Pro tip: The card's id attribute, and the button's id attribute should share some common value. Then, when the button is clicked, find the corresponding parent DOM component. Remember the split() method on a string? That will be helpful. */
-
-// obtain reference to create button and input
-let counter = 0;
 const createBtn = document.querySelector("#button--create")
-const createInput = document.querySelector("#message--input")
+const cardInput = document.querySelector("#message--input")
+const output = document.querySelector("#output")
 
-// element maker function
-const makeElement = (message) => {
-  counter ++;
-  let newCard = document.createElement("article");
-  newCard.style.border = "solid 1px black";
-  newCard.id = `card--${counter.toString()}`
-  newCard.textContent = message
-  let deleteBtn = createDeleteBtn(counter.toString())
-  newCard.appendChild(deleteBtn)
-  return newCard
+let counter = 0;
+
+
+const componentFactory = () => {
+  return {
+    content: cardInput.value,
+    id: counter,
+    makeCard: function () {
+      let newCard = document.createElement("div")
+      newCard.classList.add("card")
+      newCard.setAttribute("id", `${this.id}`)
+      newCard.innerHTML = `<p>${this.content}</p>`
+      return newCard
+    },
+    makeDeleteBtn: function () {
+      let deleteBtn = document.createElement("button")
+      deleteBtn.classList.add("delete")
+      deleteBtn.setAttribute("id", `${this.id}-delete`)
+      deleteBtn.innerHTML = `Delete Card`
+      return deleteBtn
+    }
+  }
 }
 
-// delete button maker function
-const createDeleteBtn = (btnId) => {
-  let deleteBtn = document.createElement("button")
-  deleteBtn.textContent = "Delete"
-  deleteBtn.id = `button--${btnId}`
-  return deleteBtn
+const domInjector = (element1, element2) => {
+  let container = document.createElement("div")
+  container.classList.add("container")
+  container.appendChild(element1)
+  container.appendChild(element2)
+  output.appendChild(container)
 }
 
 createBtn.addEventListener("click", (event) => {
-  let articleContent = createInput.value
-  document.body.appendChild(makeElement(articleContent));
+  counter += 1
+  let newComponent = componentFactory(event)
+  let newCard = newComponent.makeCard()
+  let newBtn = newComponent.makeDeleteBtn()
+  domInjector(newCard, newBtn)
+  cardInput.value = ""
+})
+
+output.addEventListener("click", (event) => {
+  if (event.target.classList.contains("delete")) {
+    let cardId = event.target.id.split("-")[0]
+    let currentCard = document.getElementById(cardId)
+    let containerToDelete = currentCard.parentNode
+    output.removeChild(containerToDelete)
+  }
 })
 
 
